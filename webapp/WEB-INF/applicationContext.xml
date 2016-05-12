@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- listener 등록 에 쓴 대로 applicationContext.xml을 만들어준다 ; root application 
+	context를 쓰려고! -->
+
+<!-- link들 : 문법이 저장되어있는 schema ~schema도 다른걸 할 수 있대 (보통 singleton); 인터넷이 안되면 
+	error남 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd
+        http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo-1.1.xsd
+        http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring
+        http://ehcache-spring-annotations.googlecode.com/svn/schema/ehcache-spring/ehcache-spring-1.1.xsd
+        http://www.springframework.org/schema/task
+        http://www.springframework.org/schema/task/spring-task.xsd">
+
+	<!-- controller면 @Controller 이건 -servlet.xml에서 함 -servlet.xml에는 anootation지정없이 
+		default로 함 -->
+	<!-- 그 이외의 것은 여기에 있다고 보면될듯 -->
+
+	<!-- architecture : application의 구조!! 기능별로 나눠놓은것 -->
+
+
+	<!-- 트랜잭션 관리자 활성화 : @ annotation을 쓸 수 있도록 한 것임 -->
+	<tx:annotation-driven/>
+
+	<!-- scanning @Repository, @Service, @Component -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+
+	<context:annotation-config />
+	<!-- scanning할 base- package 설정 -->
+	<context:component-scan base-package="com.estsoft.guestbook.service,com.estsoft.guestbook.repository,com.estsoft.guestbook.component">
+		<!-- repository(dao)면 @Repository -->
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Repository" />
+		<!-- service(service안에 business가 다 들어있을 것임!)면 @Service -->
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Service" />
+		<!-- etc : @Component -->
+		<context:include-filter type="annotation"
+			expression="org.springframework.stereotype.Component" />
+	</context:component-scan>
+
+	<!-- Connection Pool DataSource -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" />
+		<property name="url" value="jdbc:mysql://localhost:3306/jpadb" />
+		<property name="username" value="jpadb" />
+		<property name="password" value="jpadb" />
+	</bean>
+
+	<!-- JPA 예외를 스프링 예외로 변환 -->
+	<bean
+		class="org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor" />
+
+
+	<!-- JPA 설정 ( 엔티티 매니저 팩토리 등록 ) -->
+	<bean id="entityManagerFactory"
+		class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+
+		<!-- @Entity 탐색 시작 위치 -->
+		<property name="packagesToScan" value="com.estsoft.guestbook.domain" />
+
+		<!-- 하이버네이트 구현체 사용 -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter" />
+		</property>
+
+		<!-- 하이버네이트 상세 설정 -->
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</prop> <!-- 방언 -->
+				<prop key="hibernate.show_sql">true</prop>                  			 		<!-- SQL 보기 -->
+				<prop key="hibernate.format_sql">true</prop>               				  		<!-- SQL 정렬해서 보기 -->
+				<prop key="hibernate.use_sql_comments">true</prop>                              <!-- SQL 코멘트 보기 -->
+				<prop key="hibernate.id.new_generator_mappings">true</prop>                     <!-- 새 버전의 ID 생성 옵션 -->
+				<prop key="hibernate.hbm2ddl.auto">create</prop>                                <!-- DDL 자동 생성 -->
+			</props>
+		</property>
+	</bean>
+
+
+
+</beans>
+	
